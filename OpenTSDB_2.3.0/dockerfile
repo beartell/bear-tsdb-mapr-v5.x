@@ -1,0 +1,44 @@
+#############################
+# B.E.A.R OpenTSDB Kurulumu #
+#############################
+
+# Set the base image for this installation
+FROM maprtech/pacc:5.2.0_2.0_centos7
+
+# File Author / Maintainer
+MAINTAINER miwgates <burak_ozel@outlook.com>
+
+# Copy File into Docker
+COPY data/mapr_core.repo /etc/yum.repos.d/mapr_core.repo
+COPY data/mapr_eco.repo /etc/yum.repos.d/mapr_eco.repo
+
+# Pre-reqs
+RUN yum clean all && \
+    yum -y update --releasever=7.3 && \
+    rm -rf /var/cache/*
+RUN yum -y install gnuplot net-tools
+
+## Service Environment Variables
+ENV MAPR_CLUSTER None
+ENV MAPR_CLDB_HOSTS None
+ENV MAPR_CONTAINER_USER None
+ENV MAPR_MOUNT_PATH None
+ENV CONFIG_FILE_PATH None
+ENV OPENTSDB_CONFIG_FILE_PATH None
+ENV KAFKA2OPENTSDB_CONFIG_FILE_PATH None
+ENV START_OPENTSDB 0
+ENV START_KAFKA2OPENTSDB 0
+
+# Copy File into Docker
+COPY data/Kafka2OpenTSDB /home/Kafka2OpenTSDB
+COPY data/opentsdb-2.3.0.rpm /home/opentsdb-2.3.0.rpm
+RUN cd /home/ && \
+    rpm -i opentsdb-2.3.0.rpm && \
+    rm -rf opentsdb-2.3.0.rpm
+RUN rm -rf /usr/share/opentsdb/lib
+COPY data/lib /usr/share/opentsdb/lib
+COPY mapr-setup.sh /opt/mapr/installer/docker/mapr-setup.sh
+RUN chmod +x /opt/mapr/installer/docker/mapr-setup.sh
+
+# Portları Aç
+EXPOSE 4242:4242
